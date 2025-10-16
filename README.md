@@ -1,7 +1,7 @@
 # New-Live-Loadcase-Solver
 In this folder is the script ‘New_Live_Loadcase_Solver’, as well as several functions that take in the suspension bearing locations (hardpoints, or hPoints) from hardpoints.csv, car parameters such as weight, CoG height etc’ and the velocity in x and acceleration in x, y, and z for different loading conditions, such as accelerating, braking etc. For each loading condition, it returns the forces in each suspension member, and the forces acting on the upright at the track rod, and upper and lower wishbone mounting points, as well as the max compressive and tensile force each suspension member will see at any time.
 
-The suspension bearing locations in hardpoints.csv are arranged:
+The suspension bearing locations in hardpoints.csv are arranged:  
 				                  x	 y	z  
 Front RHS LWR OB  
 Front RHS LWR FWD IB  
