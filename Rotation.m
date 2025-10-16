@@ -7,27 +7,44 @@ function [hPoints] = Rotation(hPoints)
 
 %Rotate uses the Rodrigues matrix transformation. It creates an axis
 %between the two upper hardpoints...
-    totalZ = 50;
-    zDroop = -totalZ/2;
+    totalZ = 50; %the total amount of vertical wheel travel.
+    zDroop = -totalZ/2; 
+    %as the neutral geo is at 50% suspension travel, the full bump and droop positions are the neutral position +- half total z
     zBump = totalZ/2;
-    numOfAxles = length(fieldnames(hPoints.neutral));
+    numOfAxles = length(fieldnames(hPoints.neutral)); %finding field names to loop through the axles in turn
     axleNames = fieldnames(hPoints.neutral);
+    %creating the structures for bump and 
+    % droop by initially setting them equal to the structure and values of the neutral geo.
     hPoints.bump = hPoints.neutral;
     hPoints.droop = hPoints.neutral;
 
 
     for axleCounter = 1:numOfAxles
-        axle = axleNames{axleCounter};
-        [droopOBU.(axle), droopOBL.(axle), droopThetaU.(axle), droopThetaL.(axle), zz] = OBMove(hPoints, axle, zDroop);
-        [bumpOBU.(axle), bumpOBL.(axle), bumpThetaU.(axle), bumpThetaL.(axle), zz] = OBMove(hPoints, axle, zBump);
+        axle = axleNames{axleCounter}; %setting the current axle to either f or r
+        %finding the outboard bearing locations for the top and bottom
+        %wishbones for full droop and full bump conditions. OBU = outboard
+        %upper, OBL = outboard lower. The angle the wishbone has to the
+        %neutral position (thetaU or L) is found, but unused. zzz is the
+        %final value obtained while trying to match the change in z to the
+        %target value, and is unused.
+        [droopOBU.(axle), droopOBL.(axle), droopThetaU.(axle), droopThetaL.(axle), zzz] = OBMove(hPoints, axle, zDroop);
+        [bumpOBU.(axle), bumpOBL.(axle), bumpThetaU.(axle), bumpThetaL.(axle), zzz] = OBMove(hPoints, axle, zBump);
+        %Sets the outboard bump and droop found values to the correct place 
+        %in the hardpoint structure.
         hPoints.droop.(axle).rhs.lwrOb = droopOBL.(axle);
         hPoints.droop.(axle).rhs.uprOb = droopOBU.(axle);
+        %Finds the average change in position for each upright by finding
+        %the translation vector for each outboard bearing and finding the
+        %average of the upper and lower translation vectors.
         uprNeutral2Droop = hPoints.droop.(axle).rhs.uprOb - hPoints.neutral.(axle).rhs.uprOb;
         lwrNeutral2Droop = hPoints.droop.(axle).rhs.lwrOb - hPoints.neutral.(axle).rhs.lwrOb;
         avNeutral2Droop = (uprNeutral2Droop + lwrNeutral2Droop)/2;
+        %The wheel centre, pushrod outboard and trackrod outboard are translated by the average outboard
+        %translation vector.
         hPoints.droop.(axle).rhs.wheelCentre = hPoints.neutral.(axle).rhs.wheelCentre + avNeutral2Droop;
         hPoints.droop.(axle).rhs.prOb = hPoints.neutral.(axle).rhs.prOb + avNeutral2Droop;
         hPoints.droop.(axle).rhs.trOb = hPoints.neutral.(axle).rhs.trOb + avNeutral2Droop;
+        %and the process is repeated for bump.
         hPoints.bump.(axle).rhs.lwrOb = bumpOBL.(axle);
         hPoints.bump.(axle).rhs.uprOb = bumpOBU.(axle);
         uprNeutral2Bump = hPoints.bump.(axle).rhs.uprOb - hPoints.neutral.(axle).rhs.uprOb;
